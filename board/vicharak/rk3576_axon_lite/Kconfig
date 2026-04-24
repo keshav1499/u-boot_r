@@ -1,0 +1,11 @@
+config SYS_BOARD
+	default "rk3576_axon_lite"
+
+config SYS_VENDOR
+	default "vicharak"
+
+config SYS_CONFIG_NAME
+	default "rk3576_axon_lite"
+
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y

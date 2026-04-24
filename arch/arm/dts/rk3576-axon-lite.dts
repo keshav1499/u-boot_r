@@ -1,0 +1,315 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2026 Rockchip Electronics Co., Ltd.
+ * Copyright (c) 2026 Vicharak Computers Pvt. Ltd.
+ */
+
+/dts-v1/;
+#include "rk3576.dtsi"
+#include "rk3576-u-boot.dtsi"
+#include <dt-bindings/usb/pd.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "Vicharak - Axon Lite";
+	compatible = "vicharak,axon-lite", "rockchip,rk3576";
+
+	vcc_sys: vcc5v0-sys {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc_sys";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+	};
+
+	vcc5v0_host: vcc5v0-host {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_host";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		gpio = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&usb_host_pwren>;
+		vin-supply = <&vcc_sys>;
+	};
+
+vcc3v3_pcie: vcc3v3-pcie {
+		     u-boot,dm-pre-reloc;
+		     compatible = "regulator-fixed";
+		     regulator-name = "vcc3v3_pcie";
+		     regulator-min-microvolt = <3300000>;
+		     regulator-max-microvolt = <3300000>;
+		     enable-active-high;
+		     gpios = <&gpio2 RK_PD3 GPIO_ACTIVE_HIGH>;
+		     startup-delay-us = <5000>;
+		     pinctrl-names = "default";
+		     pinctrl-0 = <&pcie_pwr_en>;
+	     };
+
+	
+	vbus5v0_typec: vbus5v0-typec {
+		compatible = "regulator-fixed";
+		regulator-name = "vbus5v0_typec";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		gpio = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&usb_otg0_pwren>;
+	};
+
+	
+	
+user_led: user-led {
+		  u-boot,dm-pre-reloc;
+		  compatible = "regulator-fixed";
+		  regulator-name = "use_led";
+		  enable-active-high;
+		  gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
+		  regulator-boot-on;
+		  regulator-always-on;
+	  };
+
+	  adc-keys {
+		  compatible = "adc-keys";
+		  io-channels = <&saradc 1>;
+		  io-channel-names = "buttons";
+		  keyup-threshold-microvolt = <1800000>;
+		  u-boot,dm-pre-reloc;
+		  status = "disabled";
+
+		  volumeup-key {
+			  u-boot,dm-pre-reloc;
+			  linux,code = <KEY_VOLUMEUP>;
+			  label = "volume up";
+			  press-threshold-microvolt = <1750>;
+		  };
+	  };
+};
+
+
+
+&i2c6 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c6m3_xfer>;
+
+	hym8563: hym8563@51 {
+		compatible = "haoyu,hym8563";
+		reg = <0x51>;
+		#clock-cells = <0>;
+		clock-frequency = <32768>;
+		clock-output-names = "hym8563";
+		pinctrl-names = "default";
+		pinctrl-0 = <&hym8563_int>;
+		interrupt-parent = <&gpio0>;
+		interrupts = <RK_PA5 IRQ_TYPE_LEVEL_LOW>;
+		wakeup-source;
+	};
+
+	usbc0: fusb302@22 {
+		compatible = "fcs,fusb302";
+		reg = <0x22>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <RK_PB3 IRQ_TYPE_LEVEL_LOW>;
+		int-n-gpios = <&gpio0 RK_PC4 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&usbc0_int>;
+		vbus-supply = <&vbus5v0_typec>;
+		status = "okay";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+			reg = <0>;
+			usbc0_role_sw: endpoint@0 {
+				remote-endpoint = <&dwc3_0_role_switch>;
+				};
+			};
+		};
+
+		usb_con: connector {
+			compatible = "usb-c-connector";
+			label = "USB-C";
+			data-role = "dual";
+			power-role = "dual";
+			try-power-role = "sink";
+			op-sink-microwatt = <1000000>;
+
+			sink-pdos =
+				<PDO_FIXED(5000, 1000, PDO_FIXED_USB_COMM)>;
+			source-pdos =
+				<PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
+
+			altmodes {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				altmode@0 {
+					reg = <0>;
+					svid = <0xff01>;
+					vdo = <0xffffffff>;
+				};
+			};
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					usbc0_orien_sw: endpoint {
+						remote-endpoint = <&usbdp_phy0_orientation_switch>;
+					};
+				};
+
+				port@1 {
+					reg = <1>;
+					dp_altmode_mux: endpoint {
+						remote-endpoint = <&usbdp_phy0_dp_altmode_mux>;
+					};
+				};
+			};
+		};
+	};
+};
+
+&usbdp_phy {
+	status = "okay";
+	orientation-switch;
+	svid = <0xff01>;
+
+
+	sbu1-dc-gpios = <&gpio4 RK_PC4 GPIO_ACTIVE_HIGH>;
+	sbu2-dc-gpios = <&gpio4 RK_PC5 GPIO_ACTIVE_HIGH>;
+
+	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		usbdp_phy0_orientation_switch: endpoint@0 {
+			reg = <0>;
+			remote-endpoint = <&usbc0_orien_sw>;
+		};
+
+		usbdp_phy0_dp_altmode_mux: endpoint@1 {
+			reg = <1>;
+			remote-endpoint = <&dp_altmode_mux>;
+		};
+	};
+
+};
+
+&usbdp_phy_dp {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usbdp_phy_u3 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+//&u2phy0 {
+//	u-boot,dm-pre-reloc;
+//	status = "okay";
+//};
+
+&u2phy0_otg {
+	u-boot,dm-pre-reloc;
+	phy-supply = <&vbus5v0_typec>;
+	status = "okay";
+};
+
+&u2phy1 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&u2phy1_otg {
+	u-boot,dm-pre-reloc;
+	phy-supply = <&vcc5v0_host>;
+	status = "okay";
+};
+
+&usb_drd0_dwc3 {
+	status = "okay";
+	dr_mode = "otg";
+	usb-role-switch;
+//	extcon = <&u2phy0>;
+	maximum-speed = "super-speed";
+
+	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		dwc3_0_role_switch: endpoint@0 {
+			reg = <0>;
+			remote-endpoint = <&usbc0_role_sw>;
+		};
+	};
+};
+
+&usb_drd1_dwc3 {
+	u-boot,dm-pre-reloc;
+	dr_mode = "host";
+	maximum-speed = "super-speed";
+	status = "okay";
+};
+
+
+&combphy0_ps {
+	u-boot,dm-pre-reloc;
+};
+
+&combphy1_psu {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&pcie0 {
+	u-boot,dm-pre-reloc;
+	reset-gpios = <&gpio2 RK_PB4 GPIO_ACTIVE_HIGH>;
+	rockchip,skip-scan-in-resume;
+	status = "disabled";
+};
+
+&pcie0_intc {
+	u-boot,dm-pre-reloc;
+};
+
+&pinctrl {
+	u-boot,dm-pre-reloc;
+	pcie {
+		u-boot,dm-pre-reloc;
+	pcie_pwr_en: pcie-pwr-en {
+		     u-boot,dm-pre-reloc;
+		     rockchip,pins = <2 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+	     };
+	};
+
+	usb {
+		usb_host_pwren: usb-host-pwren {
+			rockchip,pins = <2 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		usb_otg0_pwren: usb-otg0-pwren {
+			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		usbc0_int: usbc0-int {
+			rockchip,pins = <4 RK_PB3 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+	
+	hym8563 {
+		hym8563_int: hym8563-int {
+			rockchip,pins = <0 RK_PA5 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+};

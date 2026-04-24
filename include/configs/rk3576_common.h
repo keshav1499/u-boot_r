@@ -13,11 +13,7 @@
 
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x40000000
-#ifdef CONFIG_SPL_SKIP_RELOCATE
-#define CONFIG_SPL_MAX_SIZE		0x00060000
-#else
-#define CONFIG_SPL_MAX_SIZE		0x00080000
-#endif
+#define CONFIG_SPL_MAX_SIZE		0x00040000
 #define CONFIG_SPL_BSS_START_ADDR	0x43fe0000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x00010000
 #define CONFIG_SPL_STACK		0x43fe0000
@@ -25,10 +21,6 @@
 #undef CONFIG_SPL_LOAD_FIT_ADDRESS
 #endif
 #define CONFIG_SPL_LOAD_FIT_ADDRESS	0x42000000
-
-/* SPL relocate */
-#undef CONFIG_SPL_RELOC_TEXT_BASE
-#define CONFIG_SPL_RELOC_TEXT_BASE	0x43d00000
 
 #define CONFIG_SYS_MALLOC_LEN		(32 << 20)
 #define CONFIG_SYS_CBSIZE		1024
@@ -39,7 +31,7 @@
 #define CONFIG_SYS_TEXT_BASE		0x40200000
 #endif
 
-#define CONFIG_SYS_INIT_SP_ADDR		0x40600000
+#define CONFIG_SYS_INIT_SP_ADDR		0x40400000
 #define CONFIG_SYS_LOAD_ADDR		0x40700800
 #define CONFIG_SYS_BOOTM_LEN		(64 << 20)	/* 64M */
 #undef COUNTER_FREQUENCY
@@ -63,22 +55,11 @@
 #define SDRAM_MAX_SIZE			(0x100000000 - CONFIG_SYS_SDRAM_BASE)	/* max 4G */
 #define CONFIG_SYS_NONCACHED_MEMORY	(1 << 20)	/* 1M */
 
-#if CONFIG_IS_ENABLED(SMP)
-#define SMP_CPU0			0x0
-#define SMP_CPU1			0x1
-#define SMP_CPU2			0x2
-#define SMP_CORE_ADDR			0x48200000
-#define SMP_CPU1_STACK			0x48200000
-#define SMP_CPU2_STACK			0x48180000
-#endif
-
 /* env used only in U-Boot */
 #ifndef CONFIG_SPL_BUILD
 /* usb mass storage */
 #define CONFIG_USB_FUNCTION_MASS_STORAGE
 #define CONFIG_ROCKUSB_G_DNL_PID	0x350e
-
-#define CONFIG_MISC_INIT_R
 
 /*
  * DDR layout mainly follow rk3588 Soc
@@ -86,7 +67,6 @@
 #define ENV_MEM_LAYOUT_SETTINGS \
 	"scriptaddr=0x40500000\0" \
 	"pxefile_addr_r=0x40600000\0" \
-	"fdtoverlay_addr_r=0x48200000\0" \
 	"fdt_addr_r=0x48300000\0" \
 	"kernel_addr_r=0x40400000\0" \
 	"kernel_addr_c=0x45480000\0" \
@@ -96,7 +76,6 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	ENV_MEM_LAYOUT_SETTINGS \
-	"fdtfile=" FDTFILE \
 	"partitions=" PARTS_RKIMG \
 	ROCKCHIP_DEVICE_SETTINGS \
 	RKIMG_DET_BOOTDEV \
