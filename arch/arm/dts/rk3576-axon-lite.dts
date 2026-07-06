@@ -37,34 +37,58 @@
 		vin-supply = <&vcc_sys>;
 	};
 
-vcc3v3_pcie: vcc3v3-pcie {
-		     u-boot,dm-pre-reloc;
-		     compatible = "regulator-fixed";
-		     regulator-name = "vcc3v3_pcie";
-		     regulator-min-microvolt = <3300000>;
-		     regulator-max-microvolt = <3300000>;
-		     enable-active-high;
-		     gpios = <&gpio2 RK_PD3 GPIO_ACTIVE_HIGH>;
-		     startup-delay-us = <5000>;
-		     pinctrl-names = "default";
-		     pinctrl-0 = <&pcie_pwr_en>;
-	     };
+	vcc5v0_device: vcc5v0-device {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_device";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+	};
 
+	vcc3v3_pcie0: vcc3v3-pcie0 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3_pcie0";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+		gpios = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
+		startup-delay-us = <5000>;
+		regulator-boot-on;
+		regulator-always-on;
+		vin-supply = <&vcc5v0_device>;
+	};
+
+	vcc3v3_pcie1: vcc3v3-pcie1 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3_pcie1";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+		gpios = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
+		startup-delay-us = <5000>;
+		regulator-boot-on;
+		regulator-always-on;
+		vin-supply = <&vcc5v0_device>;
+	};
 	
 	vbus5v0_typec: vbus5v0-typec {
 		compatible = "regulator-fixed";
 		regulator-name = "vbus5v0_typec";
+		regulator-boot-on;
+		regulator-always-on;
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
 		gpio = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&usb_otg0_pwren>;
+		vin-supply = <&vcc_sys>;
 	};
 
 	
 	
-user_led: user-led {
+	user_led: user-led {
 		  u-boot,dm-pre-reloc;
 		  compatible = "regulator-fixed";
 		  regulator-name = "use_led";
@@ -74,7 +98,7 @@ user_led: user-led {
 		  regulator-always-on;
 	  };
 
-	  adc-keys {
+	adc-keys {
 		  compatible = "adc-keys";
 		  io-channels = <&saradc 1>;
 		  io-channel-names = "buttons";
@@ -94,6 +118,7 @@ user_led: user-led {
 
 
 &i2c6 {
+	u-boot,dm-pre-reloc;
 	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c6m3_xfer>;
@@ -112,6 +137,7 @@ user_led: user-led {
 	};
 
 	usbc0: fusb302@22 {
+		u-boot,dm-pre-reloc;
 		compatible = "fcs,fusb302";
 		reg = <0x22>;
 		interrupt-parent = <&gpio4>;
@@ -180,6 +206,7 @@ user_led: user-led {
 };
 
 &usbdp_phy {
+	u-boot,dm-pre-reloc;
 	status = "okay";
 	orientation-switch;
 	svid = <0xff01>;
@@ -215,10 +242,10 @@ user_led: user-led {
 	status = "okay";
 };
 
-//&u2phy0 {
-//	u-boot,dm-pre-reloc;
-//	status = "okay";
-//};
+&u2phy0 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
 
 &u2phy0_otg {
 	u-boot,dm-pre-reloc;
@@ -238,11 +265,12 @@ user_led: user-led {
 };
 
 &usb_drd0_dwc3 {
+	u-boot,dm-pre-reloc;
 	status = "okay";
-	dr_mode = "otg";
+	dr_mode = "peripheral";
 	usb-role-switch;
 //	extcon = <&u2phy0>;
-	maximum-speed = "super-speed";
+//	maximum-speed = "super-speed";
 
 	port {
 		#address-cells = <1>;
@@ -265,6 +293,7 @@ user_led: user-led {
 
 &combphy0_ps {
 	u-boot,dm-pre-reloc;
+	status = "okay";
 };
 
 &combphy1_psu {
@@ -276,7 +305,14 @@ user_led: user-led {
 	u-boot,dm-pre-reloc;
 	reset-gpios = <&gpio2 RK_PB4 GPIO_ACTIVE_HIGH>;
 	rockchip,skip-scan-in-resume;
-	status = "disabled";
+	status = "okay";
+};
+
+&pcie1 {
+	u-boot,dm-pre-reloc;
+	reset-gpios = <&gpio2 RK_PB1 GPIO_ACTIVE_HIGH>;
+	rockchip,skip-scan-in-resume;
+	status="okay";
 };
 
 &pcie0_intc {
