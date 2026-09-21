@@ -383,7 +383,7 @@ static int set_gpt_info(struct blk_desc *dev_desc,
 	disk_partition_t *parts;
 	int errno = 0;
 	uint64_t size_ll, start_ll;
-	lbaint_t offset = 0;
+	lbaint_t offset __maybe_unused = 0;
 	int max_str_part = calc_parts_list_len(MAX_SEARCH_PARTITIONS);
 
 	debug("%s:  lba num: 0x%x %d\n", __func__,

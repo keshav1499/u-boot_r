@@ -792,7 +792,7 @@ int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 {
 	int ret;
 	int start_cycle;
-	int num_trbs;
+	int num_trbs __maybe_unused;
 	u32 field;
 	u32 length_field;
 	u64 buf_64 = 0;
